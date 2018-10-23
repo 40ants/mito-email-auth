@@ -29,8 +29,15 @@
   (:export
    #:make-login-widget
    #:make-login-processor
-   #:make-logout-processor))
+   #:make-logout-processor
+   #:get-current-user))
 (in-package mito-email-auth/weblocks)
+
+
+(defclass user-with-email (mito-email-auth/models:user-with-email)
+  ()
+  (:metaclass mito:dao-table-mixin)
+  (:documentation "Use this class if you are using Weblocks."))
 
 
 (defwidget login ()
@@ -204,3 +211,22 @@
 (defmethod render ((widget logout-processor))
   (weblocks/session:reset)
   (redirect "/"))
+
+
+(defun get-current-user ()
+  (weblocks/session:get-value
+   :user))
+
+
+(defun (setf get-current-user) (user)
+  (setf (weblocks/session:get-value
+         :user)
+        user))
+
+
+(defmethod mito-email-auth/models:authenticate ((user user-with-email))
+  "Authenticates a user."
+  (log:info "User authenticated" user)
+  
+  (setf (get-current-user)
+        user))

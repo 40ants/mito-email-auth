@@ -9,9 +9,14 @@
   (:import-from #:uuid
                 #:make-v4-uuid)
   (:import-from #:mito
+                #:find-dao
                 #:create-dao)
   (:export
-   #:user-with-email))
+   #:user-with-email
+   #:anonymous-p
+   #:get-email
+   #:*user-class*
+   #:authenticate))
 (in-package mito-email-auth/models)
 
 
@@ -23,6 +28,19 @@
           :reader get-email))
   (:metaclass mito:dao-table-mixin)
   (:unique-keys email))
+
+
+(defvar *user-class*)
+
+
+(defun get-user-by-email (email)
+  "Returns an instance of concrete class inherited from
+   user-with-email.
+   The class should be bound to global variable `*user-class*'."
+  (unless (boundp '*user-class*)
+    (error "Please, bind *user-class* symbol to a concrete class, derived from 'user-with-email"))
+  
+  (find-dao *user-class* :email email))
 
 
 (define-condition code-unknown (error)
@@ -88,7 +106,11 @@
     ))
 
 
-(defun authenticate (code)
+(defgeneric authenticate (code-or-user)
+  (:documentation "Processes user authentication. First called with the code, and makes inner call to itself with a user bound to this code."))
+
+
+(defmethod authenticate ((code string))
   "Authenticates a user.
 
    If code wasn't found, then condition code-unknown will be raised.
@@ -110,9 +132,22 @@
     ;; Ну а теперь можно попробовать залогинить пользователя
     ;; Для начала, попробуем найти его по email
     (let* ((email (get-email registration-code))
-           ;; (user (get-user-by-email email))
-           )
-      email
-      ;; user
-      )))
+           (user (or (get-user-by-email email)
+                     (make-instance *user-class*
+                                    :email email))))
+      (authenticate user))))
 
+
+(defmethod authenticate ((user user-with-email))
+  "Authenticates a user."
+  (error "Please, define an authenticate method for you a concrete class, derived from user-with-email."))
+
+
+(defgeneric anonymous-p (user)
+  (:documentation "Returns t if user is not authenticated.")
+  
+  (:method ((user t))
+    t)
+  (:method ((user user-with-email))
+    (unless (get-email user)
+      t)))
