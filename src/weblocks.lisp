@@ -77,7 +77,8 @@
      (with-html-form
          (:POST
           (lambda (&key email &allow-other-keys)
-            (send-code email)
+            (send-code email
+                       :retpath (get-parameter "retpath"))
             (setf (get-sent widget)
                   t
                   (get-email widget)
@@ -165,16 +166,18 @@
 (defgeneric reach-goal (widget goal-name &key survive-redirect-p)
   (:method ((widget t) goal-name &key survive-redirect-p)
     (declare (ignorable widget survive-redirect-p))
-    (log:info "Goal" goal-name "was reached")))
+    (log:debug "Goal" goal-name "was reached")))
 
 
 (defmethod render ((widget login-processor))
-  (let ((code (get-parameter "code")))
+  (let ((code (get-parameter "code"))
+        (retpath (or (get-parameter "retpath")
+                     "/")))
     (if code
         (handler-case
             (multiple-value-bind (user existing-p)
                 (authenticate code)
-              (log:info "User logged in" user)
+              (log:debug "User logged in" user)
 
               ;; Если логин удался, то надо вернуть пользователя на главную страницу
               (unless existing-p
@@ -183,23 +186,23 @@
               ;; Ну и в любом случае, зафиксируем факт логина
               (reach-goal widget "LOGGED-IN" :survive-redirect-p t)
 
-              (redirect "/"))
+              (redirect retpath))
           (code-unknown ()
             (setf (get-title)
-                  "Код не найден")
+                  "Code not found")
             
             (with-html
-              (:p (format nil "Код ~A не найден" code)))
+              (:p (format nil "Code ~A not found" code)))
 
             (reach-goal widget "LOGIN-CODE-NOT-FOUND"))
 
           ;; TODO: надо сделать так, чтобы можно было в один клик получить новый
           (code-expired ()
             (setf (get-title)
-                  "Код просрочен")
+                  "Code expired")
             
             (with-html
-              (:p (format nil "Код ~A просрочен" code)))
+              (:p (format nil "Code ~A expired" code)))
 
             (reach-goal widget "LOGIN-CODE-EXPIRED")))
         
@@ -226,7 +229,7 @@
 
 (defmethod mito-email-auth/models:authenticate ((user user-with-email))
   "Authenticates a user."
-  (log:info "User authenticated" user)
+  (log:debug "User authenticated" user)
   
   (setf (get-current-user)
         user))

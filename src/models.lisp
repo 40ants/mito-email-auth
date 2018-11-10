@@ -16,7 +16,12 @@
    #:anonymous-p
    #:get-email
    #:*user-class*
-   #:authenticate))
+   #:authenticate
+   #:*send-code-callback*
+   #:get-code
+   #:code-expired
+   #:code-unknown
+   #:get-user-by-email))
 (in-package mito-email-auth/models)
 
 
@@ -31,6 +36,14 @@
 
 
 (defvar *user-class*)
+(setf (documentation '*user-class* 'variable)
+      "Set this variable to a concrete class derived from `user-with-email'.")
+
+
+(defvar *send-code-callback*)
+(setf (documentation '*send-code-callback* 'variable)
+      "Set this variable to a function of one argument of type `registration-code'.
+It should send a registration code using template, suitable for your website.")
 
 
 (defun get-user-by-email (email)
@@ -91,19 +104,14 @@
                 :valid-until valid-until)))
 
 
-(defun send-code (email)
-  (let* ((code (make-registration-code email))
-         ;; (url (make-uri (format nil
-         ;;                        "/login?code=~A"
-         ;;                        (get-code code))))
-         )
-    (log:info "New registration code" code)
-    ;; (mailgun:send ("Ultralisp <noreply@ultralisp.org>" email "The code to log into the Ultralisp.org")
-    ;;   (:p ("To log into [Ultralisp.org](~A), follow [this link](~A)"
-    ;;        url
-    ;;        url))
-    ;;   (:p "Hurry up! Link is will expire in one hour."))
-    ))
+(defun send-code (email &key retpath)
+  (let* ((code (make-registration-code email)))
+    (cond
+      ((boundp '*send-code-callback*)
+       (funcall *send-code-callback*
+                code
+                :retpath retpath))
+      (t (log:info "New registration code" code "Please set *send-code-callback*!")))))
 
 
 (defgeneric authenticate (code-or-user)
