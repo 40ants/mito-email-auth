@@ -141,8 +141,8 @@ It should send a registration code using template, suitable for your website.")
     ;; Для начала, попробуем найти его по email
     (let* ((email (get-email registration-code))
            (user (or (get-user-by-email email)
-                     (make-instance *user-class*
-                                    :email email))))
+                     (mito:create-dao *user-class*
+                                      :email email))))
       (authenticate user))))
 
 
