@@ -12,6 +12,7 @@
                 #:find-dao
                 #:create-dao)
   (:export
+   #:registration-code
    #:user-with-email
    #:anonymous-p
    #:get-email
