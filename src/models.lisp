@@ -47,6 +47,13 @@
 It should send a registration code using template, suitable for your website.")
 
 
+(defmethod print-object ((user user-with-email) stream)
+  (print-unreadable-object (user stream :type t)
+    (format stream
+            "email=~A"
+            (get-email user))))
+
+
 (defun get-user-by-email (email)
   "Returns an instance of concrete class inherited from
    user-with-email.
@@ -141,14 +148,17 @@ It should send a registration code using template, suitable for your website.")
     ;; Ну а теперь можно попробовать залогинить пользователя
     ;; Для начала, попробуем найти его по email
     (let* ((email (get-email registration-code))
+           (_ (log:info "Creating a user with" email))
            (user (or (get-user-by-email email)
                      (mito:create-dao *user-class*
                                       :email email))))
+      (declare (ignorable _))
       (authenticate user))))
 
 
 (defmethod authenticate ((user user-with-email))
   "Authenticates a user."
+  (log:error "No authentication method was defined. Please, define mito-email-auth/models:authenticate method.")
   (error "Please, define an authenticate method for you a concrete class, derived from user-with-email."))
 
 

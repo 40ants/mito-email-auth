@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.1.2 (2019-01-26)
+==================
+
+Added a method ``print-object`` for ``user-with-email`` class.
+
 0.1.1
 =====
 
