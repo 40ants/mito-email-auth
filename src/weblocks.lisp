@@ -69,7 +69,7 @@
     ;; Код отправлен
     ((get-sent widget)
      (with-html
-       (:h1 "Link was sent to the email")
+       (:h1 "Please, check email now")
        (:p
         "Login link was sent to the " (:strong (get-email widget)) ".")))
     ;; If code wasn't sent to, then we need to show a form

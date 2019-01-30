@@ -2,6 +2,13 @@
  ChangeLog
 ===========
 
+0.1.3 (2019-01-30)
+==================
+
+Fixed a header of the page, saying that the login link was sent to an email.
+
+Now it is "Please, check email now" instead of "Link was sent to the email".
+
 0.1.2 (2019-01-26)
 ==================
 
