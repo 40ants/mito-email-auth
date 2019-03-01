@@ -65,6 +65,8 @@
 
 
 (defmethod render ((widget login))
+  (setf (weblocks/page:get-title)
+        "Login")
   (cond
     ;; Код отправлен
     ((get-sent widget)

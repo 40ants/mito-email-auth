@@ -2,6 +2,11 @@
  ChangeLog
 ===========
 
+0.1.4 (2019-03-01)
+==================
+
+Now login widget changes page's title to "Login".
+
 0.1.3 (2019-01-30)
 ==================
 
